@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SigMod Visualizer — ECE mini-project</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-icon" viewBox="0 0 32 16" aria-hidden="true">
+        <path d="M0 8 Q4 0 8 8 T16 8 T24 8 T32 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <div class="brand-text">
+        <h1>SigMod Visualizer</h1>
+        <p class="subtitle">ECE mini-project</p>
+      </div>
+    </div>
+    <div class="status-pill" role="status" aria-live="polite">
+      <span class="status-dot" aria-hidden="true"></span>
+      Live rendering
+    </div>
+  </header>
+
+  <main class="dashboard">
+    <nav class="tabs" role="tablist" aria-label="Modulation type">
+      <div class="tab-group">
+        <span class="tab-group-label">ANALOG</span>
+        <button type="button" class="tab" data-mod="AM" role="tab" aria-selected="true">AM</button>
+        <button type="button" class="tab" data-mod="FM" role="tab" aria-selected="false">FM</button>
+        <button type="button" class="tab" data-mod="PM" role="tab" aria-selected="false">PM</button>
+      </div>
+      <span class="tab-divider" aria-hidden="true"></span>
+      <div class="tab-group">
+        <span class="tab-group-label">DIGITAL</span>
+        <button type="button" class="tab" data-mod="ASK" role="tab" aria-selected="false">ASK</button>
+        <button type="button" class="tab" data-mod="FSK" role="tab" aria-selected="false">FSK</button>
+        <button type="button" class="tab" data-mod="PSK" role="tab" aria-selected="false">PSK</button>
+      </div>
+    </nav>
+
+    <section class="metrics" aria-label="Current parameters">
+      <article class="metric-card">
+        <div class="metric-label">Carrier freq</div>
+        <div class="metric-value"><span id="metric-fc">10</span><span class="metric-unit">Hz</span></div>
+        <div class="metric-symbol">fc</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Message freq</div>
+        <div class="metric-value"><span id="metric-fm">2</span><span class="metric-unit">Hz</span></div>
+        <div class="metric-symbol">fm</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Modulation index</div>
+        <div class="metric-value"><span id="metric-m">0.50</span></div>
+        <div class="metric-symbol">m</div>
+      </article>
+      <article class="metric-card">
+        <div class="metric-label">Bandwidth</div>
+        <div class="metric-value"><span id="metric-bw">4.0</span><span class="metric-unit">Hz</span></div>
+        <div class="metric-symbol">BW</div>
+      </article>
+    </section>
+
+    <section class="controls" aria-label="Signal parameters">
+      <div class="control">
+        <div class="control-head">
+          <label for="slider-fc">Carrier frequency</label>
+          <span class="control-value"><span id="value-fc">10</span> Hz</span>
+        </div>
+        <input id="slider-fc" type="range" min="5" max="20" step="1" value="10" />
+        <div class="control-range"><span>5</span><span>20</span></div>
+      </div>
+      <div class="control">
+        <div class="control-head">
+          <label for="slider-fm">Message frequency</label>
+          <span class="control-value"><span id="value-fm">2</span> Hz</span>
+        </div>
+        <input id="slider-fm" type="range" min="1" max="5" step="1" value="2" />
+        <div class="control-range"><span>1</span><span>5</span></div>
+      </div>
+      <div class="control">
+        <div class="control-head">
+          <label for="slider-m">Modulation index</label>
+          <span class="control-value"><span id="value-m">0.50</span></span>
+        </div>
+        <input id="slider-m" type="range" min="0.1" max="1.0" step="0.05" value="0.5" />
+        <div class="control-range"><span>0.1</span><span>1.0</span></div>
+      </div>
+    </section>
+
+    <section class="waveforms" aria-label="Waveform visualization">
+      <figure class="wave">
+        <figcaption>Message signal · m(t)</figcaption>
+        <canvas id="canvas-message" class="wave-canvas"></canvas>
+      </figure>
+      <figure class="wave">
+        <figcaption>Carrier signal · c(t)</figcaption>
+        <canvas id="canvas-carrier" class="wave-canvas"></canvas>
+      </figure>
+      <figure class="wave wave-output">
+        <figcaption>Modulated output · s(t)</figcaption>
+        <canvas id="canvas-output" class="wave-canvas"></canvas>
+      </figure>
+    </section>
+
+    <section class="equation-card" aria-label="Active modulation equation">
+      <div class="equation-label">Equation</div>
+      <code id="equation" class="equation-text">s(t) = [1 + m·cos(2π·fₘ·t)] · cos(2π·fc·t)</code>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="credits">
+      <span>SigMod Visualizer</span>
+      <span class="dot">·</span>
+      <span>ECE mini-project</span>
+    </div>
+    <button id="theme-toggle" type="button" class="action-btn" aria-label="Toggle color theme">
+      <span class="theme-icon" aria-hidden="true">◐</span>
+      <span class="theme-label">Toggle theme</span>
+    </button>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
