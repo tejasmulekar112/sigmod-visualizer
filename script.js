@@ -249,11 +249,11 @@
     dom.metricFc.textContent = state.fc;
     dom.metricFm.textContent = state.fm;
     const strength = sig.strength;
-    dom.labelM.textContent       = strength.sliderLabel;
+    dom.labelM.textContent = strength.sliderLabel;
     dom.metricMLabel.textContent = strength.cardLabel;
     dom.metricMSymbol.textContent = strength.symbol;
-    dom.metricMUnit.textContent  = strength.unit;
-    dom.metricM.textContent      = strength.value(params);
+    dom.metricMUnit.textContent = strength.unit;
+    dom.metricM.textContent = strength.value(params);
     dom.metricBw.textContent = sig.bandwidth(params).toFixed(1);
 
     // Equation.
