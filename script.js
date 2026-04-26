@@ -53,30 +53,35 @@
       bandwidth: (p) => 2 * (Math.PI * p.m + 1) * p.fm,
     },
     ASK: {
-      message: (t, p) => bitAt(t, p.fm) ? 1 : -1,
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
-      output:  (t, p) => bitAt(t, p.fm) * Math.cos(TWO_PI * p.fc * t),
-      equation: 's(t) = A(t) · cos(2π·fc·t),  A(t) ∈ {0, 1}',
+      message: (t, p) => p.am * (bitAt(t, p.fm) ? 1 : -1),
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
+      output:  (t, p) => {
+        const b = bitAt(t, p.fm);
+        const envelope = b ? p.am : p.am * (1 - p.m);
+        return p.ac * envelope * Math.cos(TWO_PI * p.fc * t);
+      },
+      equation: 's(t) = Ac · A(t) · cos(2π·fc·t),  A∈{Am, Am·(1−m)}',
       bandwidth: (p) => 2 * p.fm,
     },
     FSK: {
-      message: (t, p) => bitAt(t, p.fm) ? 1 : -1,
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
+      message: (t, p) => p.am * (bitAt(t, p.fm) ? 1 : -1),
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
       output:  (t, p) => {
-        const f = bitAt(t, p.fm) ? (p.fc + p.fm) : (p.fc - p.fm);
-        return Math.cos(TWO_PI * f * t);
+        const deltaF = p.m * p.fm;
+        const f = bitAt(t, p.fm) ? (p.fc + deltaF) : (p.fc - deltaF);
+        return p.ac * Math.cos(TWO_PI * f * t);
       },
-      equation: 's(t) = cos(2π·[fc ± Δf]·t),  Δf = fₘ',
-      bandwidth: (p) => 4 * p.fm,
+      equation: 's(t) = Ac · cos(2π·[fc ± Δf]·t),  Δf = m·fₘ',
+      bandwidth: (p) => 2 * p.fm * (1 + p.m),
     },
     PSK: {
-      message: (t, p) => bitAt(t, p.fm) ? 1 : -1,
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
+      message: (t, p) => p.am * (bitAt(t, p.fm) ? 1 : -1),
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
       output:  (t, p) => {
-        const phi = bitAt(t, p.fm) ? 0 : Math.PI;
-        return Math.cos(TWO_PI * p.fc * t + phi);
+        const phi = bitAt(t, p.fm) ? p.m * Math.PI : 0;
+        return p.ac * Math.cos(TWO_PI * p.fc * t + phi);
       },
-      equation: 's(t) = cos(2π·fc·t + φ),  φ ∈ {0, π}',
+      equation: 's(t) = Ac · cos(2π·fc·t + φ),  φ ∈ {0, m·π}',
       bandwidth: (p) => 2 * p.fm,
     },
   };
