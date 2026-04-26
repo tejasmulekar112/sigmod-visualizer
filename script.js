@@ -31,6 +31,7 @@
       },
       equation: 's(t) = Ac · [1 + m·(Am·cos(2π·fₘ·t) + DC)] · cos(2π·fc·t)',
       bandwidth: (p) => 2 * p.fm,
+      strength: { sliderLabel: 'Modulation index', cardLabel: 'Modulation index', symbol: 'm',     unit: '',    value: (p) => p.m.toFixed(2) },
     },
     FM: {
       message: (t, p) => p.am * Math.cos(TWO_PI * p.fm * t),
@@ -41,6 +42,7 @@
       },
       equation: 's(t) = Ac · cos(2π·fc·t + β·sin(2π·fₘ·t)),  β = 5m',
       bandwidth: (p) => 2 * (5 * p.m + 1) * p.fm,
+      strength: { sliderLabel: 'Modulation index', cardLabel: 'Modulation index', symbol: 'β',     unit: '',    value: (p) => (5 * p.m).toFixed(2) },
     },
     PM: {
       message: (t, p) => p.am * Math.cos(TWO_PI * p.fm * t),
@@ -51,6 +53,7 @@
       },
       equation: 's(t) = Ac · cos(2π·fc·t + kp·cos(2π·fₘ·t)),  kp = π·m',
       bandwidth: (p) => 2 * (Math.PI * p.m + 1) * p.fm,
+      strength: { sliderLabel: 'Phase deviation',  cardLabel: 'Phase deviation',  symbol: 'kp',    unit: 'rad', value: (p) => (Math.PI * p.m).toFixed(2) },
     },
     ASK: {
       message: (t, p) => p.am * (bitAt(t, p.fm) ? 1 : -1),
@@ -62,6 +65,7 @@
       },
       equation: 's(t) = Ac · A(t) · cos(2π·fc·t),  A∈{Am, Am·(1−m)}',
       bandwidth: (p) => 2 * p.fm,
+      strength: { sliderLabel: 'Amplitude ratio',  cardLabel: 'Amplitude ratio',  symbol: 'A1/A0', unit: '',    value: (p) => p.m >= 0.999 ? '∞' : (1 / (1 - p.m)).toFixed(2) },
     },
     FSK: {
       message: (t, p) => p.am * (bitAt(t, p.fm) ? 1 : -1),
@@ -73,6 +77,7 @@
       },
       equation: 's(t) = Ac · cos(2π·[fc ± Δf]·t),  Δf = m·fₘ',
       bandwidth: (p) => 2 * p.fm * (1 + p.m),
+      strength: { sliderLabel: 'Freq separation',  cardLabel: 'Freq separation',  symbol: 'Δf',    unit: 'Hz',  value: (p) => (p.m * p.fm).toFixed(2) },
     },
     PSK: {
       message: (t, p) => p.am * (bitAt(t, p.fm) ? 1 : -1),
@@ -83,6 +88,7 @@
       },
       equation: 's(t) = Ac · cos(2π·fc·t + φ),  φ ∈ {0, m·π}',
       bandwidth: (p) => 2 * p.fm,
+      strength: { sliderLabel: 'Phase shift',      cardLabel: 'Phase shift',      symbol: 'Δφ',    unit: 'rad', value: (p) => (Math.PI * p.m).toFixed(2) },
     },
   };
 
@@ -121,6 +127,9 @@
     metricFc:       document.getElementById('metric-fc'),
     metricFm:       document.getElementById('metric-fm'),
     metricM:        document.getElementById('metric-m'),
+    metricMLabel:   document.getElementById('metric-m-label'),
+    metricMSymbol:  document.getElementById('metric-m-symbol'),
+    metricMUnit:    document.getElementById('metric-m-unit'),
     metricBw:       document.getElementById('metric-bw'),
     canvasMessage:  document.getElementById('canvas-message'),
     canvasCarrier:  document.getElementById('canvas-carrier'),
@@ -239,7 +248,12 @@
     // Metric cards.
     dom.metricFc.textContent = state.fc;
     dom.metricFm.textContent = state.fm;
-    dom.metricM.textContent  = state.m.toFixed(2);
+    const strength = sig.strength;
+    dom.labelM.textContent       = strength.sliderLabel;
+    dom.metricMLabel.textContent = strength.cardLabel;
+    dom.metricMSymbol.textContent = strength.symbol;
+    dom.metricMUnit.textContent  = strength.unit;
+    dom.metricM.textContent      = strength.value(params);
     dom.metricBw.textContent = sig.bandwidth(params).toFixed(1);
 
     // Equation.
