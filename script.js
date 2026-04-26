@@ -22,26 +22,35 @@
   // Each scheme: message/carrier/output return values nominally in [-1, 1].
   const SIGNALS = {
     AM: {
-      message: (t, p) => Math.cos(TWO_PI * p.fm * t),
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
-      // Normalize by (1+m) so peak magnitude stays within the 80% amplitude band.
-      output:  (t, p) => ((1 + p.m * Math.cos(TWO_PI * p.fm * t)) * Math.cos(TWO_PI * p.fc * t)) / (1 + p.m),
-      equation: 's(t) = [1 + m·cos(2π·fₘ·t)] · cos(2π·fc·t)',
+      message: (t, p) => p.am * Math.cos(TWO_PI * p.fm * t) + p.dc,
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
+      output:  (t, p) => {
+        const env = 1 + p.m * (p.am * Math.cos(TWO_PI * p.fm * t) + p.dc);
+        const norm = 1 + p.m * (p.am + Math.abs(p.dc));
+        return p.ac * (env / norm) * Math.cos(TWO_PI * p.fc * t);
+      },
+      equation: 's(t) = Ac · [1 + m·(Am·cos(2π·fₘ·t) + DC)] · cos(2π·fc·t)',
       bandwidth: (p) => 2 * p.fm,
     },
     FM: {
-      message: (t, p) => Math.cos(TWO_PI * p.fm * t),
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
-      output:  (t, p) => Math.cos(TWO_PI * p.fc * t + p.m * Math.sin(TWO_PI * p.fm * t)),
-      equation: 's(t) = cos(2π·fc·t + m·sin(2π·fₘ·t))',
-      bandwidth: (p) => 2 * (p.m * p.fm + p.fm),
+      message: (t, p) => p.am * Math.cos(TWO_PI * p.fm * t),
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
+      output:  (t, p) => {
+        const beta = 5 * p.m;
+        return p.ac * Math.cos(TWO_PI * p.fc * t + beta * Math.sin(TWO_PI * p.fm * t));
+      },
+      equation: 's(t) = Ac · cos(2π·fc·t + β·sin(2π·fₘ·t)),  β = 5m',
+      bandwidth: (p) => 2 * (5 * p.m + 1) * p.fm,
     },
     PM: {
-      message: (t, p) => Math.cos(TWO_PI * p.fm * t),
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
-      output:  (t, p) => Math.cos(TWO_PI * p.fc * t + p.m * Math.cos(TWO_PI * p.fm * t)),
-      equation: 's(t) = cos(2π·fc·t + m·cos(2π·fₘ·t))',
-      bandwidth: (p) => 2 * (p.m + 1) * p.fm,
+      message: (t, p) => p.am * Math.cos(TWO_PI * p.fm * t),
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
+      output:  (t, p) => {
+        const kp = Math.PI * p.m;
+        return p.ac * Math.cos(TWO_PI * p.fc * t + kp * Math.cos(TWO_PI * p.fm * t));
+      },
+      equation: 's(t) = Ac · cos(2π·fc·t + kp·cos(2π·fₘ·t)),  kp = π·m',
+      bandwidth: (p) => 2 * (Math.PI * p.m + 1) * p.fm,
     },
     ASK: {
       message: (t, p) => bitAt(t, p.fm) ? 1 : -1,
@@ -159,7 +168,10 @@
 
   function render() {
     const sig = SIGNALS[state.mod];
-    const params = { fc: state.fc, fm: state.fm, m: state.m };
+    const params = {
+      fc: state.fc, fm: state.fm, m: state.m,
+      ac: state.ac, am: state.am, dc: state.dc,
+    };
 
     // Slider numeric labels.
     dom.valueAc.textContent  = state.ac.toFixed(2);
