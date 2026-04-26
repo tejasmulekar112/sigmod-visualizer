@@ -142,7 +142,7 @@
     return { ctx, w, h };
   }
 
-  function drawWaveform(canvas, color, valueAt) {
+  function drawWaveform(canvas, color, valueAt, fs, tw) {
     const { ctx, w, h } = setupCanvas(canvas);
     ctx.clearRect(0, 0, w, h);
 
@@ -154,16 +154,16 @@
     ctx.lineTo(w, h / 2);
     ctx.stroke();
 
-    // Waveform.
-    const N = Math.max(2, Math.floor(w * 2));
+    // Discrete samples at the user-selected sampling rate Fs over time window tw.
+    const N = Math.max(2, Math.round(fs * tw));
     const amp = (h / 2) * 0.8;
     ctx.strokeStyle = color || '#000';
     ctx.lineWidth = 2;
     ctx.lineJoin = 'round';
     ctx.beginPath();
     for (let i = 0; i <= N; i++) {
-      const t = i / N;
-      const x = t * w;
+      const t = (i / N) * tw;
+      const x = (i / N) * w;
       const y = h / 2 - valueAt(t) * amp;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
@@ -205,9 +205,9 @@
     });
 
     // Waveforms.
-    drawWaveform(dom.canvasMessage, cssVar('--teal'),   (t) => sig.message(t, params));
-    drawWaveform(dom.canvasCarrier, cssVar('--blue'),   (t) => sig.carrier(t, params));
-    drawWaveform(dom.canvasOutput,  cssVar('--purple'), (t) => sig.output(t, params));
+    drawWaveform(dom.canvasMessage, cssVar('--teal'),   (t) => sig.message(t, params), state.fs, state.tw);
+    drawWaveform(dom.canvasCarrier, cssVar('--blue'),   (t) => sig.carrier(t, params), state.fs, state.tw);
+    drawWaveform(dom.canvasOutput,  cssVar('--purple'), (t) => sig.output(t, params),  state.fs, state.tw);
   }
 
   // ---- Wire events ----------------------------------------------------------
