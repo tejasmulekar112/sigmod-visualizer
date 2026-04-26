@@ -171,6 +171,53 @@
     ctx.stroke();
   }
 
+  // Box–Muller: two uniforms in (0,1] -> one standard-normal sample.
+  function gaussian() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(TWO_PI * v);
+  }
+
+  // Like drawWaveform, but adds Gaussian noise sized by SNR (in dB) computed
+  // from the actual signal power over the visible window.
+  function drawNoisyWaveform(canvas, color, valueAt, fs, tw, snrDb) {
+    const { ctx, w, h } = setupCanvas(canvas);
+    ctx.clearRect(0, 0, w, h);
+
+    ctx.strokeStyle = cssVar('--axis') || '#d4d7dc';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(w, h / 2);
+    ctx.stroke();
+
+    const N = Math.max(2, Math.round(fs * tw));
+    const samples = new Array(N + 1);
+    let power = 0;
+    for (let i = 0; i <= N; i++) {
+      const t = (i / N) * tw;
+      const s = valueAt(t);
+      samples[i] = s;
+      power += s * s;
+    }
+    power /= (N + 1);
+    const sigma = Math.sqrt(power / Math.pow(10, snrDb / 10));
+
+    const amp = (h / 2) * 0.8;
+    ctx.strokeStyle = color || '#000';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const x = (i / N) * w;
+      const y = h / 2 - (samples[i] + sigma * gaussian()) * amp;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
   function render() {
     const sig = SIGNALS[state.mod];
     const params = {
@@ -207,7 +254,7 @@
     // Waveforms.
     drawWaveform(dom.canvasMessage, cssVar('--teal'),   (t) => sig.message(t, params), state.fs, state.tw);
     drawWaveform(dom.canvasCarrier, cssVar('--blue'),   (t) => sig.carrier(t, params), state.fs, state.tw);
-    drawWaveform(dom.canvasOutput,  cssVar('--purple'), (t) => sig.output(t, params),  state.fs, state.tw);
+    drawNoisyWaveform(dom.canvasOutput, cssVar('--purple'), (t) => sig.output(t, params), state.fs, state.tw, state.snr);
   }
 
   // ---- Wire events ----------------------------------------------------------
