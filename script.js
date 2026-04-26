@@ -72,16 +72,38 @@
     },
   };
 
-  const state = { mod: 'AM', fc: 10, fm: 2, m: 0.5 };
+  const state = {
+    mod: 'AM',
+    fc: 10, fm: 2, m: 0.5,
+    ac: 1.0, am: 1.0, dc: 0.0,
+    tw: 1.0, fs: 200, snr: 30,
+  };
 
   const dom = {
     tabs:           document.querySelectorAll('.tab'),
+
+    sliderAc:       document.getElementById('slider-ac'),
     sliderFc:       document.getElementById('slider-fc'),
+    sliderAm:       document.getElementById('slider-am'),
     sliderFm:       document.getElementById('slider-fm'),
+    sliderDc:       document.getElementById('slider-dc'),
     sliderM:        document.getElementById('slider-m'),
+    sliderTw:       document.getElementById('slider-tw'),
+    sliderFs:       document.getElementById('slider-fs'),
+    sliderSnr:      document.getElementById('slider-snr'),
+
+    valueAc:        document.getElementById('value-ac'),
     valueFc:        document.getElementById('value-fc'),
+    valueAm:        document.getElementById('value-am'),
     valueFm:        document.getElementById('value-fm'),
+    valueDc:        document.getElementById('value-dc'),
     valueM:         document.getElementById('value-m'),
+    valueTw:        document.getElementById('value-tw'),
+    valueFs:        document.getElementById('value-fs'),
+    valueSnr:       document.getElementById('value-snr'),
+
+    labelM:         document.getElementById('label-m'),
+
     metricFc:       document.getElementById('metric-fc'),
     metricFm:       document.getElementById('metric-fm'),
     metricM:        document.getElementById('metric-m'),
@@ -140,9 +162,15 @@
     const params = { fc: state.fc, fm: state.fm, m: state.m };
 
     // Slider numeric labels.
-    dom.valueFc.textContent = state.fc;
-    dom.valueFm.textContent = state.fm;
-    dom.valueM.textContent  = state.m.toFixed(2);
+    dom.valueAc.textContent  = state.ac.toFixed(2);
+    dom.valueFc.textContent  = state.fc;
+    dom.valueAm.textContent  = state.am.toFixed(2);
+    dom.valueFm.textContent  = state.fm;
+    dom.valueDc.textContent  = state.dc.toFixed(2);
+    dom.valueM.textContent   = state.m.toFixed(2);
+    dom.valueTw.textContent  = state.tw.toFixed(2);
+    dom.valueFs.textContent  = state.fs;
+    dom.valueSnr.textContent = state.snr;
 
     // Metric cards.
     dom.metricFc.textContent = state.fc;
@@ -167,9 +195,15 @@
 
   // ---- Wire events ----------------------------------------------------------
 
-  dom.sliderFc.addEventListener('input', (e) => { state.fc = +e.target.value; render(); });
-  dom.sliderFm.addEventListener('input', (e) => { state.fm = +e.target.value; render(); });
-  dom.sliderM.addEventListener('input',  (e) => { state.m  = +e.target.value; render(); });
+  dom.sliderAc.addEventListener('input',  (e) => { state.ac  = +e.target.value; render(); });
+  dom.sliderFc.addEventListener('input',  (e) => { state.fc  = +e.target.value; render(); });
+  dom.sliderAm.addEventListener('input',  (e) => { state.am  = +e.target.value; render(); });
+  dom.sliderFm.addEventListener('input',  (e) => { state.fm  = +e.target.value; render(); });
+  dom.sliderDc.addEventListener('input',  (e) => { state.dc  = +e.target.value; render(); });
+  dom.sliderM.addEventListener('input',   (e) => { state.m   = +e.target.value; render(); });
+  dom.sliderTw.addEventListener('input',  (e) => { state.tw  = +e.target.value; render(); });
+  dom.sliderFs.addEventListener('input',  (e) => { state.fs  = +e.target.value; render(); });
+  dom.sliderSnr.addEventListener('input', (e) => { state.snr = +e.target.value; render(); });
 
   dom.tabs.forEach((btn) => {
     btn.addEventListener('click', () => {

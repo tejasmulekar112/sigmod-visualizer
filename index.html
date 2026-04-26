@@ -64,29 +64,87 @@
     </section>
 
     <section class="controls" aria-label="Signal parameters">
-      <div class="control">
-        <div class="control-head">
-          <label for="slider-fc">Carrier frequency</label>
-          <span class="control-value"><span id="value-fc">10</span> Hz</span>
+      <div class="control-card">
+        <div class="control-card-title">Signal</div>
+        <div class="control-grid">
+          <div class="control">
+            <div class="control-head">
+              <label for="slider-ac">Carrier amplitude</label>
+              <span class="control-value"><span id="value-ac">1.00</span></span>
+            </div>
+            <input id="slider-ac" type="range" min="0.1" max="2.0" step="0.05" value="1.0" />
+            <div class="control-range"><span>0.1</span><span>2.0</span></div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <label for="slider-fc">Carrier frequency</label>
+              <span class="control-value"><span id="value-fc">10</span> Hz</span>
+            </div>
+            <input id="slider-fc" type="range" min="5" max="20" step="1" value="10" />
+            <div class="control-range"><span>5</span><span>20</span></div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <label for="slider-am">Message amplitude</label>
+              <span class="control-value"><span id="value-am">1.00</span></span>
+            </div>
+            <input id="slider-am" type="range" min="0.1" max="2.0" step="0.05" value="1.0" />
+            <div class="control-range"><span>0.1</span><span>2.0</span></div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <label for="slider-fm">Message frequency</label>
+              <span class="control-value"><span id="value-fm">2</span> Hz</span>
+            </div>
+            <input id="slider-fm" type="range" min="1" max="10" step="1" value="2" />
+            <div class="control-range"><span>1</span><span>10</span></div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <label for="slider-dc">Message DC offset</label>
+              <span class="control-value"><span id="value-dc">0.00</span></span>
+            </div>
+            <input id="slider-dc" type="range" min="-1.0" max="1.0" step="0.05" value="0.0" />
+            <div class="control-range"><span>-1.0</span><span>1.0</span></div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <label for="slider-m"><span id="label-m">Modulation index</span></label>
+              <span class="control-value"><span id="value-m">0.50</span></span>
+            </div>
+            <input id="slider-m" type="range" min="0" max="1.0" step="0.05" value="0.5" />
+            <div class="control-range"><span>0</span><span>1.0</span></div>
+          </div>
         </div>
-        <input id="slider-fc" type="range" min="5" max="20" step="1" value="10" />
-        <div class="control-range"><span>5</span><span>20</span></div>
       </div>
-      <div class="control">
-        <div class="control-head">
-          <label for="slider-fm">Message frequency</label>
-          <span class="control-value"><span id="value-fm">2</span> Hz</span>
+      <div class="control-card">
+        <div class="control-card-title">DSP &amp; channel</div>
+        <div class="control-grid">
+          <div class="control">
+            <div class="control-head">
+              <label for="slider-tw">Time window</label>
+              <span class="control-value"><span id="value-tw">1.00</span> s</span>
+            </div>
+            <input id="slider-tw" type="range" min="0.5" max="3.0" step="0.1" value="1.0" />
+            <div class="control-range"><span>0.5</span><span>3.0</span></div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <label for="slider-fs">Sampling rate</label>
+              <span class="control-value"><span id="value-fs">200</span> sps</span>
+            </div>
+            <input id="slider-fs" type="range" min="20" max="1000" step="10" value="200" />
+            <div class="control-range"><span>20</span><span>1000</span></div>
+          </div>
+          <div class="control">
+            <div class="control-head">
+              <label for="slider-snr">SNR</label>
+              <span class="control-value"><span id="value-snr">30</span> dB</span>
+            </div>
+            <input id="slider-snr" type="range" min="5" max="40" step="1" value="30" />
+            <div class="control-range"><span>5</span><span>40</span></div>
+          </div>
         </div>
-        <input id="slider-fm" type="range" min="1" max="5" step="1" value="2" />
-        <div class="control-range"><span>1</span><span>5</span></div>
-      </div>
-      <div class="control">
-        <div class="control-head">
-          <label for="slider-m">Modulation index</label>
-          <span class="control-value"><span id="value-m">0.50</span></span>
-        </div>
-        <input id="slider-m" type="range" min="0.1" max="1.0" step="0.05" value="0.5" />
-        <div class="control-range"><span>0.1</span><span>1.0</span></div>
       </div>
     </section>
 
