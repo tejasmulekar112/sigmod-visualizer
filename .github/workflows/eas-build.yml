@@ -1,11 +1,14 @@
 name: EAS Build (Android APK)
 
+# Disabled auto-trigger to avoid filling the free-tier Expo queue.
+# Re-enable by uncommenting the `push:` block below and pushing.
+# To trigger manually meanwhile: GitHub repo -> Actions -> "EAS Build" -> "Run workflow".
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'mobile/**'
-      - '.github/workflows/eas-build.yml'
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'mobile/**'
+  #     - '.github/workflows/eas-build.yml'
   workflow_dispatch:
 
 jobs:
