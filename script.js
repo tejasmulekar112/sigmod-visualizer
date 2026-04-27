@@ -22,69 +22,114 @@
   // Each scheme: message/carrier/output return values nominally in [-1, 1].
   const SIGNALS = {
     AM: {
-      message: (t, p) => Math.cos(TWO_PI * p.fm * t),
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
-      // Normalize by (1+m) so peak magnitude stays within the 80% amplitude band.
-      output:  (t, p) => ((1 + p.m * Math.cos(TWO_PI * p.fm * t)) * Math.cos(TWO_PI * p.fc * t)) / (1 + p.m),
-      equation: 's(t) = [1 + m·cos(2π·fₘ·t)] · cos(2π·fc·t)',
+      message: (t, p) => p.am * Math.cos(TWO_PI * p.fm * t) + p.dc,
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
+      output:  (t, p) => {
+        const env = 1 + p.m * (p.am * Math.cos(TWO_PI * p.fm * t) + p.dc);
+        const norm = 1 + p.m * (p.am + Math.abs(p.dc));
+        return p.ac * (env / norm) * Math.cos(TWO_PI * p.fc * t);
+      },
+      equation: 's(t) = Ac · [1 + m·(Am·cos(2π·fₘ·t) + DC)] · cos(2π·fc·t)',
       bandwidth: (p) => 2 * p.fm,
+      strength: { sliderLabel: 'Modulation index', cardLabel: 'Modulation index', symbol: 'm',     unit: '',    value: (p) => p.m.toFixed(2) },
     },
     FM: {
-      message: (t, p) => Math.cos(TWO_PI * p.fm * t),
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
-      output:  (t, p) => Math.cos(TWO_PI * p.fc * t + p.m * Math.sin(TWO_PI * p.fm * t)),
-      equation: 's(t) = cos(2π·fc·t + m·sin(2π·fₘ·t))',
-      bandwidth: (p) => 2 * (p.m * p.fm + p.fm),
+      message: (t, p) => p.am * Math.cos(TWO_PI * p.fm * t),
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
+      output:  (t, p) => {
+        const beta = 5 * p.m;
+        return p.ac * Math.cos(TWO_PI * p.fc * t + beta * Math.sin(TWO_PI * p.fm * t));
+      },
+      equation: 's(t) = Ac · cos(2π·fc·t + β·sin(2π·fₘ·t)),  β = 5m',
+      bandwidth: (p) => 2 * (5 * p.m + 1) * p.fm,
+      strength: { sliderLabel: 'Modulation index', cardLabel: 'Modulation index', symbol: 'β',     unit: '',    value: (p) => (5 * p.m).toFixed(2) },
     },
     PM: {
-      message: (t, p) => Math.cos(TWO_PI * p.fm * t),
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
-      output:  (t, p) => Math.cos(TWO_PI * p.fc * t + p.m * Math.cos(TWO_PI * p.fm * t)),
-      equation: 's(t) = cos(2π·fc·t + m·cos(2π·fₘ·t))',
-      bandwidth: (p) => 2 * (p.m + 1) * p.fm,
+      message: (t, p) => p.am * Math.cos(TWO_PI * p.fm * t),
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
+      output:  (t, p) => {
+        const kp = Math.PI * p.m;
+        return p.ac * Math.cos(TWO_PI * p.fc * t + kp * Math.cos(TWO_PI * p.fm * t));
+      },
+      equation: 's(t) = Ac · cos(2π·fc·t + kp·cos(2π·fₘ·t)),  kp = π·m',
+      bandwidth: (p) => 2 * (Math.PI * p.m + 1) * p.fm,
+      strength: { sliderLabel: 'Phase deviation',  cardLabel: 'Phase deviation',  symbol: 'kp',    unit: 'rad', value: (p) => (Math.PI * p.m).toFixed(2) },
     },
     ASK: {
-      message: (t, p) => bitAt(t, p.fm) ? 1 : -1,
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
-      output:  (t, p) => bitAt(t, p.fm) * Math.cos(TWO_PI * p.fc * t),
-      equation: 's(t) = A(t) · cos(2π·fc·t),  A(t) ∈ {0, 1}',
+      message: (t, p) => p.am * (bitAt(t, p.fm) ? 1 : -1),
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
+      output:  (t, p) => {
+        const b = bitAt(t, p.fm);
+        const envelope = b ? p.am : p.am * (1 - p.m);
+        return p.ac * envelope * Math.cos(TWO_PI * p.fc * t);
+      },
+      equation: 's(t) = Ac · A(t) · cos(2π·fc·t),  A∈{Am, Am·(1−m)}',
       bandwidth: (p) => 2 * p.fm,
+      strength: { sliderLabel: 'Amplitude ratio',  cardLabel: 'Amplitude ratio',  symbol: 'A1/A0', unit: '',    value: (p) => p.m >= 0.999 ? '∞' : (1 / (1 - p.m)).toFixed(2) },
     },
     FSK: {
-      message: (t, p) => bitAt(t, p.fm) ? 1 : -1,
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
+      message: (t, p) => p.am * (bitAt(t, p.fm) ? 1 : -1),
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
       output:  (t, p) => {
-        const f = bitAt(t, p.fm) ? (p.fc + p.fm) : (p.fc - p.fm);
-        return Math.cos(TWO_PI * f * t);
+        const deltaF = p.m * p.fm;
+        const f = bitAt(t, p.fm) ? (p.fc + deltaF) : (p.fc - deltaF);
+        return p.ac * Math.cos(TWO_PI * f * t);
       },
-      equation: 's(t) = cos(2π·[fc ± Δf]·t),  Δf = fₘ',
-      bandwidth: (p) => 4 * p.fm,
+      equation: 's(t) = Ac · cos(2π·[fc ± Δf]·t),  Δf = m·fₘ',
+      bandwidth: (p) => 2 * p.fm * (1 + p.m),
+      strength: { sliderLabel: 'Freq separation',  cardLabel: 'Freq separation',  symbol: 'Δf',    unit: 'Hz',  value: (p) => (p.m * p.fm).toFixed(2) },
     },
     PSK: {
-      message: (t, p) => bitAt(t, p.fm) ? 1 : -1,
-      carrier: (t, p) => Math.cos(TWO_PI * p.fc * t),
+      message: (t, p) => p.am * (bitAt(t, p.fm) ? 1 : -1),
+      carrier: (t, p) => p.ac * Math.cos(TWO_PI * p.fc * t),
       output:  (t, p) => {
-        const phi = bitAt(t, p.fm) ? 0 : Math.PI;
-        return Math.cos(TWO_PI * p.fc * t + phi);
+        const phi = bitAt(t, p.fm) ? p.m * Math.PI : 0;
+        return p.ac * Math.cos(TWO_PI * p.fc * t + phi);
       },
-      equation: 's(t) = cos(2π·fc·t + φ),  φ ∈ {0, π}',
+      equation: 's(t) = Ac · cos(2π·fc·t + φ),  φ ∈ {0, m·π}',
       bandwidth: (p) => 2 * p.fm,
+      strength: { sliderLabel: 'Phase shift',      cardLabel: 'Phase shift',      symbol: 'Δφ',    unit: 'rad', value: (p) => (Math.PI * p.m).toFixed(2) },
     },
   };
 
-  const state = { mod: 'AM', fc: 10, fm: 2, m: 0.5 };
+  const state = {
+    mod: 'AM',
+    fc: 10, fm: 2, m: 0.5,
+    ac: 1.0, am: 1.0, dc: 0.0,
+    tw: 1.0, fs: 200, snr: 30,
+  };
 
   const dom = {
     tabs:           document.querySelectorAll('.tab'),
+
+    sliderAc:       document.getElementById('slider-ac'),
     sliderFc:       document.getElementById('slider-fc'),
+    sliderAm:       document.getElementById('slider-am'),
     sliderFm:       document.getElementById('slider-fm'),
+    sliderDc:       document.getElementById('slider-dc'),
     sliderM:        document.getElementById('slider-m'),
+    sliderTw:       document.getElementById('slider-tw'),
+    sliderFs:       document.getElementById('slider-fs'),
+    sliderSnr:      document.getElementById('slider-snr'),
+
+    valueAc:        document.getElementById('value-ac'),
     valueFc:        document.getElementById('value-fc'),
+    valueAm:        document.getElementById('value-am'),
     valueFm:        document.getElementById('value-fm'),
+    valueDc:        document.getElementById('value-dc'),
     valueM:         document.getElementById('value-m'),
+    valueTw:        document.getElementById('value-tw'),
+    valueFs:        document.getElementById('value-fs'),
+    valueSnr:       document.getElementById('value-snr'),
+
+    labelM:         document.getElementById('label-m'),
+
     metricFc:       document.getElementById('metric-fc'),
     metricFm:       document.getElementById('metric-fm'),
     metricM:        document.getElementById('metric-m'),
+    metricMLabel:   document.getElementById('metric-m-label'),
+    metricMSymbol:  document.getElementById('metric-m-symbol'),
+    metricMUnit:    document.getElementById('metric-m-unit'),
     metricBw:       document.getElementById('metric-bw'),
     canvasMessage:  document.getElementById('canvas-message'),
     canvasCarrier:  document.getElementById('canvas-carrier'),
@@ -106,7 +151,7 @@
     return { ctx, w, h };
   }
 
-  function drawWaveform(canvas, color, valueAt) {
+  function drawWaveform(canvas, color, valueAt, fs, tw) {
     const { ctx, w, h } = setupCanvas(canvas);
     ctx.clearRect(0, 0, w, h);
 
@@ -118,17 +163,64 @@
     ctx.lineTo(w, h / 2);
     ctx.stroke();
 
-    // Waveform.
-    const N = Math.max(2, Math.floor(w * 2));
+    // Discrete samples at the user-selected sampling rate Fs over time window tw.
+    const N = Math.max(2, Math.round(fs * tw));
     const amp = (h / 2) * 0.8;
     ctx.strokeStyle = color || '#000';
     ctx.lineWidth = 2;
     ctx.lineJoin = 'round';
     ctx.beginPath();
     for (let i = 0; i <= N; i++) {
-      const t = i / N;
-      const x = t * w;
+      const t = (i / N) * tw;
+      const x = (i / N) * w;
       const y = h / 2 - valueAt(t) * amp;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  // Box–Muller: two uniforms in (0,1] -> one standard-normal sample.
+  function gaussian() {
+    let u = 0, v = 0;
+    while (u === 0) u = Math.random();
+    while (v === 0) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(TWO_PI * v);
+  }
+
+  // Like drawWaveform, but adds Gaussian noise sized by SNR (in dB) computed
+  // from the actual signal power over the visible window.
+  function drawNoisyWaveform(canvas, color, valueAt, fs, tw, snrDb) {
+    const { ctx, w, h } = setupCanvas(canvas);
+    ctx.clearRect(0, 0, w, h);
+
+    ctx.strokeStyle = cssVar('--axis') || '#d4d7dc';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, h / 2);
+    ctx.lineTo(w, h / 2);
+    ctx.stroke();
+
+    const N = Math.max(2, Math.round(fs * tw));
+    const samples = new Array(N + 1);
+    let power = 0;
+    for (let i = 0; i <= N; i++) {
+      const t = (i / N) * tw;
+      const s = valueAt(t);
+      samples[i] = s;
+      power += s * s;
+    }
+    power /= (N + 1);
+    const sigma = Math.sqrt(power / Math.pow(10, snrDb / 10));
+
+    const amp = (h / 2) * 0.8;
+    ctx.strokeStyle = color || '#000';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const x = (i / N) * w;
+      const y = h / 2 - (samples[i] + sigma * gaussian()) * amp;
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
@@ -137,17 +229,31 @@
 
   function render() {
     const sig = SIGNALS[state.mod];
-    const params = { fc: state.fc, fm: state.fm, m: state.m };
+    const params = {
+      fc: state.fc, fm: state.fm, m: state.m,
+      ac: state.ac, am: state.am, dc: state.dc,
+    };
 
     // Slider numeric labels.
-    dom.valueFc.textContent = state.fc;
-    dom.valueFm.textContent = state.fm;
-    dom.valueM.textContent  = state.m.toFixed(2);
+    dom.valueAc.textContent  = state.ac.toFixed(2);
+    dom.valueFc.textContent  = state.fc;
+    dom.valueAm.textContent  = state.am.toFixed(2);
+    dom.valueFm.textContent  = state.fm;
+    dom.valueDc.textContent  = state.dc.toFixed(2);
+    dom.valueM.textContent   = state.m.toFixed(2);
+    dom.valueTw.textContent  = state.tw.toFixed(2);
+    dom.valueFs.textContent  = state.fs;
+    dom.valueSnr.textContent = state.snr;
 
     // Metric cards.
     dom.metricFc.textContent = state.fc;
     dom.metricFm.textContent = state.fm;
-    dom.metricM.textContent  = state.m.toFixed(2);
+    const strength = sig.strength;
+    dom.labelM.textContent = strength.sliderLabel;
+    dom.metricMLabel.textContent = strength.cardLabel;
+    dom.metricMSymbol.textContent = strength.symbol;
+    dom.metricMUnit.textContent = strength.unit;
+    dom.metricM.textContent = strength.value(params);
     dom.metricBw.textContent = sig.bandwidth(params).toFixed(1);
 
     // Equation.
@@ -160,16 +266,22 @@
     });
 
     // Waveforms.
-    drawWaveform(dom.canvasMessage, cssVar('--teal'),   (t) => sig.message(t, params));
-    drawWaveform(dom.canvasCarrier, cssVar('--blue'),   (t) => sig.carrier(t, params));
-    drawWaveform(dom.canvasOutput,  cssVar('--purple'), (t) => sig.output(t, params));
+    drawWaveform(dom.canvasMessage, cssVar('--teal'),   (t) => sig.message(t, params), state.fs, state.tw);
+    drawWaveform(dom.canvasCarrier, cssVar('--blue'),   (t) => sig.carrier(t, params), state.fs, state.tw);
+    drawNoisyWaveform(dom.canvasOutput, cssVar('--purple'), (t) => sig.output(t, params), state.fs, state.tw, state.snr);
   }
 
   // ---- Wire events ----------------------------------------------------------
 
-  dom.sliderFc.addEventListener('input', (e) => { state.fc = +e.target.value; render(); });
-  dom.sliderFm.addEventListener('input', (e) => { state.fm = +e.target.value; render(); });
-  dom.sliderM.addEventListener('input',  (e) => { state.m  = +e.target.value; render(); });
+  dom.sliderAc.addEventListener('input',  (e) => { state.ac  = +e.target.value; render(); });
+  dom.sliderFc.addEventListener('input',  (e) => { state.fc  = +e.target.value; render(); });
+  dom.sliderAm.addEventListener('input',  (e) => { state.am  = +e.target.value; render(); });
+  dom.sliderFm.addEventListener('input',  (e) => { state.fm  = +e.target.value; render(); });
+  dom.sliderDc.addEventListener('input',  (e) => { state.dc  = +e.target.value; render(); });
+  dom.sliderM.addEventListener('input',   (e) => { state.m   = +e.target.value; render(); });
+  dom.sliderTw.addEventListener('input',  (e) => { state.tw  = +e.target.value; render(); });
+  dom.sliderFs.addEventListener('input',  (e) => { state.fs  = +e.target.value; render(); });
+  dom.sliderSnr.addEventListener('input', (e) => { state.snr = +e.target.value; render(); });
 
   dom.tabs.forEach((btn) => {
     btn.addEventListener('click', () => {

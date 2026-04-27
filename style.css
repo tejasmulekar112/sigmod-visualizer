@@ -300,13 +300,31 @@ body {
 
 /* ======== Controls ======== */
 .controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.control-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 16px 20px 20px;
+}
+
+.control-card-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
 }
 
 .control {
@@ -504,5 +522,7 @@ input[type="range"]:focus-visible {
   .wave-canvas { height: 120px; }
   .tab-divider { display: none; }
   .tabs { gap: 8px; }
-  .controls { padding: 16px; gap: 16px; }
+  .controls { gap: 12px; }
+  .control-card { padding: 14px 16px 16px; }
+  .control-grid { gap: 16px; }
 }
