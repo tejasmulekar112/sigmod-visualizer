@@ -33,5 +33,8 @@ jobs:
       - name: Install deps
         run: npm install
 
+      - name: Ensure EAS project exists
+        run: eas init --non-interactive --force
+
       - name: Trigger Android preview build
         run: eas build --platform android --profile preview --non-interactive --no-wait
