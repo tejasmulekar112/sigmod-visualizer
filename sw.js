@@ -1,3 +1,5 @@
+// Bump this string whenever any precached asset changes, so old caches evict
+// on the next visit. Otherwise users will see the stale cached version.
 const CACHE_VERSION = 'sigmod-v1';
 const PRECACHE = [
   './',
